@@ -12,4 +12,5 @@ public interface UsersRepository extends JpaRepository<Users, String> {
     Users findUsersByWalletAccount(@Param("wallerAccount") String account);
 
     Optional<Users> findByEmail(@Param("email") String email);
+
 }

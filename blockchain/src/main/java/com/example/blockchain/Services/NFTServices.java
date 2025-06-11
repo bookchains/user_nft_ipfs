@@ -21,17 +21,21 @@ import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
+import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.RemoteFunctionCall;
 import org.web3j.protocol.core.methods.request.EthFilter;
 import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.tuples.generated.Tuple2;
+import org.web3j.tuples.generated.Tuple3;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.gas.DefaultGasProvider;
 import org.web3j.abi.datatypes.Type;
 import org.web3j.tx.gas.StaticGasProvider;
 import org.web3j.utils.Convert;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -225,6 +229,23 @@ public class NFTServices {
         String formattedDate = sdf.format(new Date()); // 오늘 날짜
 
         return contract.purchaseItem(tokenId, formattedDate).send();
+    }
+
+    public BigDecimal getBalanceInEther(String address) throws Exception {
+        BigInteger wei = web3j.ethGetBalance(address, DefaultBlockParameterName.LATEST)
+                .send()
+                .getBalance();
+
+        return Convert.fromWei(new BigDecimal(wei), Convert.Unit.ETHER);
+    }
+
+    public Boolean listedNft(String privateKey, BigInteger tokenId) throws Exception {
+        Booknft contract = loadContract(privateKey);
+
+        Tuple3<String, BigInteger, Boolean> send = contract.getListing(tokenId).send();
+
+
+        return send.component3();
     }
 
 }

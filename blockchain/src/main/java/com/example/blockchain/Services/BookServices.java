@@ -39,6 +39,8 @@ public class BookServices {
 
     @Autowired
     private BookRepository bookRepository;
+    @Autowired
+    private NFTServices nftServices;
 
 
     private final WebClient webClient = WebClient.builder()
@@ -122,29 +124,33 @@ public class BookServices {
             book.setTradeMethod(newBook.getTradeMethod());
             book.setPostPrice(newBook.getPostPrice());
             book.setTradePlace(newBook.getTradePlace());
+            book.setDescription(newBook.getDescription());
         }
         // 수정된 데이터 다시 업로드
         return uploadBookMetadata(book);
     }
 
-    public List<ResponseBookData> homeBook(List<TokenData> allToken) throws Exception {
-        List<ResponseBookData> bookMetaDataList = new ArrayList<>();
-        for(TokenData token : allToken){
-
-            ResponseBookData book = new ResponseBookData(token.getTokenId() ,fetchBookMetadataFromIpfs(token.getUri()));
-
-            bookMetaDataList.add(book);
-
-        }
-        return bookMetaDataList;
-    }
+//    public List<ResponseBookData> homeBook(List<TokenData> allToken) throws Exception {
+//        List<ResponseBookData> bookMetaDataList = new ArrayList<>();
+//        for(TokenData token : allToken){
+//
+//
+//            ResponseBookData book = new ResponseBookData(token.getTokenId() ,fetchBookMetadataFromIpfs(token.getUri()));
+//
+//            bookMetaDataList.add(book);
+//
+//        }
+//        return bookMetaDataList;
+//    }
 
     public List<ResponseBookData> searchToTokenIds(String key, List<TokenData> Tokens) throws Exception {
         List<ResponseBookData> bookList = new ArrayList<>();
         for(TokenData i : Tokens){
             BookMetaData book = fetchBookMetadataFromIpfs(i.getUri());
 
-            bookList.add(new ResponseBookData(i.getTokenId(), book));
+            String seller = nftServices.OwnerOf(key, i.getTokenId());
+
+            bookList.add(new ResponseBookData(i.getTokenId(), book, seller));
 
         }
         return bookList;

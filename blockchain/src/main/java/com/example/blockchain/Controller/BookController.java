@@ -97,8 +97,10 @@ public class BookController {
 
         BookMetaData bookMetaData = bookServices.fetchBookMetadataFromIpfs(uri);
 
+        String sellerAccount = nftServices.OwnerOf(privateKey, tokenId);
 
-        return new ResponseBookData(tokenId, bookMetaData);
+
+        return new ResponseBookData(tokenId, bookMetaData, sellerAccount);
     }
 
     @GetMapping("/isbn/{isbn}")
@@ -131,22 +133,23 @@ public class BookController {
                 book.setIsbn(dto.getBook().getIsbn());
                 book.setUri(newUri);
 
-                nftServices.listBook(privateKey, dto.getTokenId(), BigInteger.valueOf(dto.getBook().getPrice()));
             }
             else{
-                Book book = bookRepository.findByNftId(dto.getTokenId());
 
-                book.setIsbn(dto.getBook().getIsbn());
-                book.setUri(newUri);
+                bookRepository.save(new Book(dto.getTokenId(), dto.getBook().getTitle(), dto.getBook().getAuthor(), dto.getBook().getPrice(), dto.getBook().getImg().get(0),
+                        newUri, dto.getBook().getIsbn()));
 
-                nftServices.listBook(privateKey, dto.getTokenId(), BigInteger.valueOf(dto.getBook().getPrice()));
+                if(!nftServices.listedNft(privateKey, dto.getTokenId()))
+                    nftServices.listBook(privateKey, dto.getTokenId(), BigInteger.valueOf(dto.getBook().getPrice()));
+
             }
 
         }
         else{
-            bookRepository.delete(bookRepository.findByNftId(dto.getTokenId()));
-
-            nftServices.unListBook(privateKey, dto.getTokenId());
+            if(bookRepository.existsById(dto.getTokenId()))
+                bookRepository.delete(bookRepository.findByNftId(dto.getTokenId()));
+            if(nftServices.listedNft(privateKey, dto.getTokenId()))
+                nftServices.unListBook(privateKey, dto.getTokenId());
         }
 
         return true;

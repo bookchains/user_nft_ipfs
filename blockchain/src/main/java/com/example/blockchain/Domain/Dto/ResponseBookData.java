@@ -22,11 +22,17 @@ public class ResponseBookData {
     private int postPrice;
     private String tradePlace;
 
+    private String description;
+    private String status;
+    private String publishDate;
+
+    private String sellerAccount;
 
 
 
 
-    public ResponseBookData(BigInteger tokenId, BookMetaData book) {
+
+    public ResponseBookData(BigInteger tokenId, BookMetaData book, String sellerAccount) {
         this.tokenId = tokenId;
         this.title = book.getTitle();
         this.author = book.getAuthor();
@@ -38,6 +44,12 @@ public class ResponseBookData {
         this.tradeMethod = book.getTradeMethod();
         this.postPrice = book.getPostPrice();
         this.tradePlace = book.getTradePlace();
+
+        this.description = book.getDescription();
+        this.status = book.getStatus();
+        this.publishDate = book.getPublishDate();
+
+        this.sellerAccount = sellerAccount;
     }
 
 

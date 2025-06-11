@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -45,7 +46,9 @@ public class NFTController {
 
         BookMetaData ipfsBook = bookServices.fetchBookMetadataFromIpfs(uri);
 
-        ResponseBookData book = new ResponseBookData(dto.getNftId(), ipfsBook);
+        String seller = nftServices.OwnerOf(privateKey, dto.getNftId());
+
+        ResponseBookData book = new ResponseBookData(dto.getNftId(), ipfsBook, seller);
 
         return ResponseEntity.ok(book);
     }
@@ -77,6 +80,16 @@ public class NFTController {
         try {
             if(escrowService.confirmDeal(privateKey, dto.getDealId())){
                 nftServices.transferBook(privateKey, dto.getTokenId());
+
+                BookMetaData bookMetaData = bookServices.fetchBookMetadataFromIpfs(nftServices.getTokenUri(privateKey, dto.getTokenId()));
+
+                bookMetaData.setTrade(false);
+
+                String uri = bookServices.uploadBookMetadata(bookMetaData);
+
+                nftServices.updateUri(privateKey, dto.getTokenId(), uri);
+
+
                 bookRepository.delete(bookRepository.findByNftId(dto.getTokenId()));
                 return ResponseEntity.ok(true);
             }
@@ -103,6 +116,16 @@ public class NFTController {
         return ResponseEntity
                 .status(StatusCode.NOT_FOUND_DEAL)
                 .body(false);
+    }
+
+    @GetMapping("/checkBalance")
+    public ResponseEntity<BigDecimal> checkBalance(HttpServletRequest request) throws Exception {
+        String token = jwtUtil.resolveToken(request);
+        String address = jwtUtil.getAddress(token);
+
+        BigDecimal balance = nftServices.getBalanceInEther(address);
+
+        return ResponseEntity.ok(balance);
     }
 
 
